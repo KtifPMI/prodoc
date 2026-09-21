@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1a73e8">
+  <title>ПроДокторов — база знаний</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>ПроДокторов <span class="sub">база знаний</span></h1>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="search" type="search" placeholder="Поиск по статьям…" autocomplete="off">
+        <button id="search-clear" class="hidden" aria-label="Очистить">&times;</button>
+      </div>
+    </div>
+  </header>
+
+  <nav id="chips" class="chips"></nav>
+
+  <main id="content" class="content"></main>
+
+  <footer id="footer" class="footer">
+    <span id="result-count"></span>
+    <button id="expand-all" class="btn-small">Развернуть все</button>
+    <button id="collapse-all" class="btn-small">Свернуть все</button>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
