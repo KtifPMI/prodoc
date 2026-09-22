@@ -1,7 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const SRC = path.join(__dirname, 'ПроДокторов-база-знаний-конспект.md');
+const SOURCES = [
+  { file: 'ПроДокторов-база-знаний-конспект.md', group: 'help', prefix: 's' },
+  { file: 'Экзамен-шпаргалка.md', group: 'exam', prefix: 'e' }
+];
 const OUT = path.join(__dirname, 'js', 'data.js');
 
 function esc(s) {
@@ -98,9 +101,6 @@ function parseBody(lines) {
   return out.join('\n');
 }
 
-const text = fs.readFileSync(SRC, 'utf8');
-const lines = text.split(/\r?\n/);
-
 const sections = [];
 let cur = null;
 let art = null;
@@ -121,33 +121,41 @@ function flushArticle() {
   buf = [];
 }
 
-for (const raw of lines) {
-  const s = raw.match(/^##\s+(.*)$/);
-  const a = raw.match(/^###\s+(.*)$/);
-  if (s) {
-    flushArticle();
-    const num = (s[1].match(/^(\d+)\./) || [])[1];
-    cur = {
-      id: 's' + (num || sections.length + 1),
-      num: num || '',
-      title: s[1].replace(/^\d+\.\s*/, ''),
-      articles: []
-    };
-    sections.push(cur);
-  } else if (a && cur) {
-    flushArticle();
-    art = { title: a[1], body: '', text: '' };
-  } else if (raw.trim() && art) {
-    buf.push(raw);
-  } else {
-    buf.push(raw);
+for (const src of SOURCES) {
+  const text = fs.readFileSync(path.join(__dirname, src.file), 'utf8');
+  const lines = text.split(/\r?\n/);
+
+  for (const raw of lines) {
+    const s = raw.match(/^##\s+(.*)$/);
+    const a = raw.match(/^###\s+(.*)$/);
+    if (s) {
+      flushArticle();
+      const num = (s[1].match(/^(\d+)\./) || [])[1];
+      cur = {
+        id: src.prefix + (num || sections.length + 1),
+        num: num || '',
+        group: src.group,
+        title: s[1].replace(/^\d+\.\s*/, ''),
+        articles: []
+      };
+      sections.push(cur);
+    } else if (a && cur) {
+      flushArticle();
+      art = { title: a[1], body: '', text: '' };
+    } else if (raw.trim() && art) {
+      buf.push(raw);
+    } else {
+      buf.push(raw);
+    }
   }
+  flushArticle();
 }
-flushArticle();
 
 const out = '/* Автогенерация: node build.js */\nwindow.PDOC = ' + JSON.stringify(sections) + ';\n';
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, out, 'utf8');
 
 const total = sections.reduce((n, s) => n + s.articles.length, 0);
-console.log(`Секций: ${sections.length}, карточек: ${total}`);
+const help = sections.reduce((n, s) => n + (s.group === 'help' ? s.articles.length : 0), 0);
+const exam = sections.reduce((n, s) => n + (s.group === 'exam' ? s.articles.length : 0), 0);
+console.log(`Секций: ${sections.length} (справка ${sections.filter(s => s.group === 'help').length}, экзамен ${sections.filter(s => s.group === 'exam').length}), карточек: ${total} (справка ${help}, экзамен ${exam})`);

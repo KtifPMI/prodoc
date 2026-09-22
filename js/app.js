@@ -4,14 +4,47 @@
   var $$ = function (s) { return document.querySelectorAll(s); };
   var allCards = [];
   var activeSection = 'all';
+  var activeGroup = 'help';
   var query = '';
+
+  function groupSections() {
+    return DATA.filter(function (s) { return s.group === activeGroup; });
+  }
+
+  // ---- RENDER GROUP TABS ----
+  function renderGroups() {
+    var nav = $('#groups');
+    var groups = [];
+    DATA.forEach(function (s) { if (groups.indexOf(s.group) === -1) groups.push(s.group); });
+    var html = '';
+    groups.forEach(function (g) {
+      var label = g === 'exam' ? 'К зачёту' : 'База знаний';
+      html += '<button class="gchip' + (g === activeGroup ? ' active' : '') + '" data-g="' + g + '">' + label + '</button>';
+    });
+    nav.innerHTML = html;
+    nav.addEventListener('click', function (e) {
+      var chip = e.target.closest('.gchip');
+      if (!chip) return;
+      activeGroup = chip.dataset.g;
+      activeSection = 'all';
+      query = '';
+      searchInput.value = '';
+      searchClear.classList.add('hidden');
+      renderGroups();
+      renderChips();
+      renderContent();
+      apply();
+      window.scrollTo(0, 0);
+    });
+  }
 
   // ---- RENDER CHIPS ----
   function renderChips() {
     var nav = $('#chips');
-    var total = DATA.reduce(function (n, s) { return n + s.articles.length; }, 0);
+    var secs = groupSections();
+    var total = secs.reduce(function (n, s) { return n + s.articles.length; }, 0);
     var html = '<button class="chip active" data-s="all">Все<span class="cnt">' + total + '</span></button>';
-    DATA.forEach(function (sec) {
+    secs.forEach(function (sec) {
       html += '<button class="chip" data-s="' + sec.id + '">' + sec.title + '<span class="cnt">' + sec.articles.length + '</span></button>';
     });
     nav.innerHTML = html;
@@ -28,7 +61,8 @@
   function renderContent() {
     var main = $('#content');
     var html = '';
-    DATA.forEach(function (sec) {
+    allCards = [];
+    groupSections().forEach(function (sec) {
       html += '<section class="section" data-s="' + sec.id + '">';
       html += '<h2 class="section-title">' + sec.title + '</h2>';
       sec.articles.forEach(function (art) {
@@ -48,16 +82,16 @@
 
     // link card refs
     allCards.forEach(function (c) { c.el = main.querySelector('[data-id="' + c.id + '"]'); });
-
-    // toggle cards
-    main.addEventListener('click', function (e) {
-      var head = e.target.closest('.card-head');
-      if (!head) return;
-      var card = head.closest('.card');
-      var open = card.classList.toggle('open');
-      head.setAttribute('aria-expanded', open);
-    });
   }
+
+  // ---- CARD TOGGLE (listener once) ----
+  $('#content').addEventListener('click', function (e) {
+    var head = e.target.closest('.card-head');
+    if (!head) return;
+    var card = head.closest('.card');
+    var open = card.classList.toggle('open');
+    head.setAttribute('aria-expanded', open);
+  });
 
   // ---- SEARCH ----
   var searchInput = $('#search');
@@ -90,6 +124,11 @@
     sections.forEach(function (sec) {
       var sid = sec.dataset.s;
       var secVisible = false;
+      var secModel = dataFindById(sid);
+      if (!secModel || secModel.group !== activeGroup) {
+        sec.style.display = 'none';
+        return;
+      }
       if (activeSection !== 'all' && activeSection !== sid) {
         sec.style.display = 'none';
         return;
@@ -123,13 +162,14 @@
 
     // footer count
     var countEl = $('#result-count');
+    var totalInGroup = groupSections().reduce(function (n, s) { return n + s.articles.length; }, 0);
     if (query) {
-      countEl.textContent = visibleTotal + ' из ' + allCards.length;
+      countEl.textContent = visibleTotal + ' из ' + totalInGroup;
     } else if (activeSection !== 'all') {
-      var sec = DATA.find(function (s) { return s.id === activeSection; });
+      var sec = dataFindById(activeSection);
       countEl.textContent = sec ? sec.articles.length + ' статей' : '';
     } else {
-      countEl.textContent = allCards.length + ' статей';
+      countEl.textContent = totalInGroup + ' статей';
     }
 
     // empty state
@@ -181,6 +221,13 @@
     return d.innerHTML;
   }
 
+  function dataFindById(id) {
+    for (var i = 0; i < DATA.length; i++) {
+      if (DATA[i].id === id) return DATA[i];
+    }
+    return null;
+  }
+
   // ---- EXPAND / COLLAPSE ALL ----
   $('#expand-all').addEventListener('click', function () {
     allCards.forEach(function (c) {
@@ -198,6 +245,7 @@
   });
 
   // ---- INIT ----
+  renderGroups();
   renderChips();
   renderContent();
   apply();
