@@ -3,7 +3,8 @@ const path = require('path');
 
 const SOURCES = [
   { file: 'ПроДокторов-база-знаний-конспект.md', group: 'help', prefix: 's' },
-  { file: 'Экзамен-шпаргалка.md', group: 'exam', prefix: 'e' }
+  { file: 'Экзамен-шпаргалка.md', group: 'exam', prefix: 'e' },
+  { file: 'Зачет-от-сотрудников.md', group: 'staff', prefix: 'z' }
 ];
 const OUT = path.join(__dirname, 'js', 'data.js');
 
