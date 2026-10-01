@@ -18,7 +18,7 @@
     DATA.forEach(function (s) { if (groups.indexOf(s.group) === -1) groups.push(s.group); });
     var html = '';
     groups.forEach(function (g) {
-      var label = g === 'exam' ? 'К зачёту' : (g === 'staff' ? 'Зачет от сотрудников' : 'База знаний');
+      var label = g === 'exam' ? 'К зачёту' : (g === 'staff' ? 'Зачет от сотрудников' : (g === 'book' ? 'Книга' : 'База знаний'));
       html += '<button class="gchip' + (g === activeGroup ? ' active' : '') + '" data-g="' + g + '">' + label + '</button>';
     });
     nav.innerHTML = html;
