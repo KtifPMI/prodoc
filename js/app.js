@@ -4,7 +4,7 @@
   var $$ = function (s) { return document.querySelectorAll(s); };
   var allCards = [];
   var activeSection = 'all';
-  var activeGroup = 'help';
+  var activeGroup = (DATA[0] && DATA[0].group) || 'help';
   var query = '';
 
   function groupSections() {
@@ -14,11 +14,14 @@
   // ---- RENDER GROUP TABS ----
   function renderGroups() {
     var nav = $('#groups');
+    if (!nav) return;
     var groups = [];
     DATA.forEach(function (s) { if (groups.indexOf(s.group) === -1) groups.push(s.group); });
+    if (groups.length < 2) { nav.style.display = 'none'; return; }
+    var labels = { exam: 'К зачёту', staff: 'Зачет от сотрудников', book: 'Книга', zachet2: 'Зачёт №2' };
     var html = '';
     groups.forEach(function (g) {
-      var label = g === 'exam' ? 'К зачёту' : (g === 'staff' ? 'Зачет от сотрудников' : (g === 'book' ? 'Книга' : 'База знаний'));
+      var label = labels[g] || 'База знаний';
       html += '<button class="gchip' + (g === activeGroup ? ' active' : '') + '" data-g="' + g + '">' + label + '</button>';
     });
     nav.innerHTML = html;

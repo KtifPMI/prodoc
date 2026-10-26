@@ -5,9 +5,12 @@ const SOURCES = [
   { file: 'ПроДокторов-база-знаний-конспект.md', group: 'help', prefix: 's' },
   { file: 'Экзамен-шпаргалка.md', group: 'exam', prefix: 'e' },
   { file: 'Зачет-от-сотрудников.md', group: 'staff', prefix: 'z' },
-  { file: 'Книга-конспект.md', group: 'book', prefix: 'b' }
+  { file: 'Книга-конспект.md', group: 'book', prefix: 'b' },
+  { file: 'Зачет-2-конспект.md', group: 'zachet2', prefix: 'v' }
 ];
 const OUT = path.join(__dirname, 'js', 'data.js');
+const OUT2 = path.join(__dirname, 'js', 'data2.js');
+const SEPARATE_GROUP = 'zachet2';
 
 function esc(s) {
   return s
@@ -153,11 +156,13 @@ for (const src of SOURCES) {
   flushArticle();
 }
 
-const out = '/* Автогенерация: node build.js */\nwindow.PDOC = ' + JSON.stringify(sections) + ';\n';
+const mainSections = sections.filter((s) => s.group !== SEPARATE_GROUP);
+const zachet2Sections = sections.filter((s) => s.group === SEPARATE_GROUP);
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
-fs.writeFileSync(OUT, out, 'utf8');
+fs.writeFileSync(OUT, '/* Автогенерация: node build.js */\nwindow.PDOC = ' + JSON.stringify(mainSections) + ';\n', 'utf8');
+fs.writeFileSync(OUT2, '/* Автогенерация: node build.js */\nwindow.PDOC = ' + JSON.stringify(zachet2Sections) + ';\n', 'utf8');
 
 const total = sections.reduce((n, s) => n + s.articles.length, 0);
 const help = sections.reduce((n, s) => n + (s.group === 'help' ? s.articles.length : 0), 0);
 const exam = sections.reduce((n, s) => n + (s.group === 'exam' ? s.articles.length : 0), 0);
-console.log(`Секций: ${sections.length} (справка ${sections.filter(s => s.group === 'help').length}, экзамен ${sections.filter(s => s.group === 'exam').length}), карточек: ${total} (справка ${help}, экзамен ${exam})`);
+console.log(`Секций: ${sections.length} (справка ${sections.filter(s => s.group === 'help').length}, экзамен ${sections.filter(s => s.group === 'exam').length}, зачёт 2 ${zachet2Sections.length}), карточек: ${total} (справка ${help}, экзамен ${exam})`);
